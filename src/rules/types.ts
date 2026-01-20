@@ -50,5 +50,25 @@ export interface MatchResult {
       context?: number;
       critical?: number;
     };
+    priorityBreakdown?: {
+      critical: number;
+      high: number;
+      medium: number;
+      low: number;
+    };
   };
+}
+
+export enum RulePriority {
+  CRITICAL = 100,  // Always include (credentials, crypto)
+  HIGH = 75,       // Context + language matched
+  MEDIUM = 50,     // Language matched
+  LOW = 25,        // General/framework-specific
+}
+
+export interface ScoredInstruction {
+  instruction: Instruction;
+  priority: RulePriority;
+  score: number;
+  matchReasons: string[];
 }
