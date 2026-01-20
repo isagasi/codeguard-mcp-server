@@ -49,9 +49,22 @@ export function listResources() {
  * Read a specific resource by URI
  */
 export function readResource(uri: string, instructions: Instruction[]) {
-  // Parse URI
-  const url = new URL(uri);
-  const path = url.pathname;
+  // Parse codeguard://instructions/python style URIs
+  // URL parsing treats this as: protocol=codeguard:, host=instructions, pathname=/python
+  let path: string;
+  let searchParams: URLSearchParams;
+  
+  try {
+    const url = new URL(uri);
+    // Reconstruct full path from host + pathname
+    path = '/' + url.host + url.pathname;
+    searchParams = url.searchParams;
+  } catch {
+    // Fallback for non-URL formats
+    const parts = uri.split('?');
+    path = parts[0].replace('codeguard://', '/');
+    searchParams = new URLSearchParams(parts[1] || '');
+  }
   
   // Handle different resource types
   if (path === '/instructions/all') {
@@ -59,7 +72,7 @@ export function readResource(uri: string, instructions: Instruction[]) {
   }
   
   if (path === '/instructions/file') {
-    const filepath = url.searchParams.get('path');
+    const filepath = searchParams.get('path');
     if (filepath) {
       return getInstructionsByFilePath(filepath, instructions);
     }
@@ -73,7 +86,16 @@ export function readResource(uri: string, instructions: Instruction[]) {
     return getInstructionsByLanguage(language, instructions);
   }
   
-  return { error: `Unknown resource: ${uri}` };
+  // Return empty content for unknown resources
+  return {
+    contents: [
+      {
+        uri,
+        mimeType: 'text/plain',
+        text: `Unknown resource: ${uri}`,
+      },
+    ],
+  };
 }
 
 /**
@@ -101,6 +123,18 @@ function getAllInstructions(instructions: Instruction[]) {
 function getInstructionsByLanguage(language: string, instructions: Instruction[]) {
   const result = matchInstructions({ language }, instructions);
   
+  if (!result || !result.instructions || result.instructions.length === 0) {
+    return {
+      contents: [
+        {
+          uri: `codeguard://instructions/${language}`,
+          mimeType: 'text/markdown',
+          text: `No instructions found for language: ${language}`,
+        },
+      ],
+    };
+  }
+  
   const content = result.instructions
     .map(i => `# ${i.frontmatter.description}\n\n${i.content}`)
     .join('\n\n---\n\n');
@@ -110,7 +144,7 @@ function getInstructionsByLanguage(language: string, instructions: Instruction[]
       {
         uri: `codeguard://instructions/${language}`,
         mimeType: 'text/markdown',
-        text: content || `No instructions found for language: ${language}`,
+        text: content,
       },
     ],
   };
@@ -122,6 +156,18 @@ function getInstructionsByLanguage(language: string, instructions: Instruction[]
 function getInstructionsByFilePath(filepath: string, instructions: Instruction[]) {
   const result = matchInstructions({ filepath }, instructions);
   
+  if (!result || !result.instructions || result.instructions.length === 0) {
+    return {
+      contents: [
+        {
+          uri: `codeguard://instructions/file?path=${filepath}`,
+          mimeType: 'text/markdown',
+          text: `No instructions found for file: ${filepath}`,
+        },
+      ],
+    };
+  }
+  
   const content = result.instructions
     .map(i => `# ${i.frontmatter.description}\n\n${i.content}`)
     .join('\n\n---\n\n');
@@ -131,7 +177,7 @@ function getInstructionsByFilePath(filepath: string, instructions: Instruction[]
       {
         uri: `codeguard://instructions/file?path=${filepath}`,
         mimeType: 'text/markdown',
-        text: content || `No instructions found for file: ${filepath}`,
+        text: content,
       },
     ],
   };

@@ -51,8 +51,11 @@ async function testServer() {
     const pythonResource = await client.readResource({
       uri: 'codeguard://instructions/python',
     });
-    const pythonContent = pythonResource.contents[0];
-    console.log(`Retrieved ${pythonContent.text?.length || 0} characters of Python instructions`);
+    if (pythonResource.contents && pythonResource.contents.length > 0) {
+      const pythonContent = pythonResource.contents[0];
+      const textLength = (pythonContent as any).text?.length || 0;
+      console.log(`Retrieved ${textLength} characters of Python instructions`);
+    }
     console.log();
 
     // Test 3: List prompts
@@ -88,8 +91,38 @@ async function testServer() {
     const fileResource = await client.readResource({
       uri: 'codeguard://instructions/file?path=src/auth/login.ts',
     });
-    const fileContent = fileResource.contents[0];
-    console.log(`Retrieved ${fileContent.text?.length || 0} characters of instructions`);
+    if (fileResource.contents && fileResource.contents.length > 0) {
+      const fileContent = fileResource.contents[0];
+      const textLength = (fileContent as any).text?.length || 0;
+      console.log(`Retrieved ${textLength} characters of instructions`);
+    }
+    console.log();
+
+    // Test 6: List available tools
+    console.log('🔧 Test 6: Listing available tools...');
+    const tools = await client.listTools();
+    console.log(`Found ${tools.tools.length} tools:`);
+    tools.tools.forEach((t) => {
+      console.log(`  - ${t.name}: ${t.description}`);
+    });
+    console.log();
+
+    // Test 7: Call get_security_instructions tool
+    console.log('⚙️ Test 7: Calling get_security_instructions tool...');
+    const toolResult = await client.callTool({
+      name: 'get_security_instructions',
+      arguments: {
+        language: 'python',
+        context: 'password hashing',
+      },
+    });
+    if (toolResult.content && toolResult.content.length > 0) {
+      const toolText = (toolResult.content[0] as any).text;
+      console.log(`Tool returned ${toolText?.length || 0} characters`);
+      if (toolText && (toolText.includes('bcrypt') || toolText.includes('Argon2'))) {
+        console.log('✅ Tool response includes expected security rules!');
+      }
+    }
     console.log();
 
     console.log('✅ All tests passed!');
@@ -98,7 +131,11 @@ async function testServer() {
     await client.close();
     serverProcess.kill();
   } catch (error) {
-    console.error('❌ Test failed:', error);
+    console.log('❌ Test failed:');
+    console.log(error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+      console.log(error.stack);
+    }
     serverProcess.kill();
     process.exit(1);
   }

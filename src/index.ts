@@ -84,7 +84,9 @@ async function createServer() {
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     const uri = request.params.uri;
     logToFile(`[MCP] ReadResource called: ${uri}`);
-    return readResource(uri, instructions);
+    const result = readResource(uri, instructions);
+    logToFile(`[MCP] ReadResource result: ${JSON.stringify(result).substring(0, 200)}`);
+    return result;
   });
 
   // List available prompts

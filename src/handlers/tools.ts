@@ -57,7 +57,7 @@ export function listTools() {
 /**
  * Execute a tool call
  */
-export async function callTool(
+export function callTool(
   name: string,
   args: Record<string, unknown>,
   instructions: Instruction[]
@@ -70,7 +70,15 @@ export async function callTool(
     return validateCodeSecurity(args, instructions);
   }
   
-  throw new Error(`Unknown tool: ${name}`);
+  return {
+    content: [
+      {
+        type: 'text',
+        text: `Error: Unknown tool: ${name}`,
+      },
+    ],
+    isError: true,
+  };
 }
 
 /**
