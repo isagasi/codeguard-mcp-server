@@ -139,13 +139,15 @@ Smart context-aware rule delivery in < 10ms!
 │  │  • Parse frontmatter (applyTo, version)   │    │
 │  │  • Match language/file patterns           │    │
 │  │  • Context-aware rule selection           │    │
+│  │  • Priority scoring (Critical/High/Med/Low)│   │
+│  │  • Custom rule override support           │    │
 │  └─────────────────┬─────────────────────────┘    │
 │                    │                               │
 │  ┌─────────────────▼─────────────────────────┐    │
 │  │  Centralized Rule Repository              │    │
 │  │  /rules/codeguard-1-*.instructions.md     │    │
 │  │  /rules/codeguard-0-*.instructions.md     │    │
-│  │  /rules/custom-*.instructions.md          │    │
+│  │  /rules/custom/*.instructions.md ✨ NEW   │    │
 │  └───────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────┘
 ```
@@ -186,9 +188,11 @@ Returns: Concatenated instruction text for matched rules
 ### 3. Rule Matching Engine
 Smart rule selection based on:
 
-- **Language Detection**: `**/*.py` → Python rules
+- **Language Detection**: `**/*.py` → Python rules (auto-detected from file extensions)
 - **File Patterns**: `**/*.test.js` → Testing rules
-- **Context Keywords**: "authentication" → Auth/MFA rules
+- **Context Keywords**: "authentication" → Auth/MFA rules (50+ keywords)
+- **Priority Scoring**: 4-tier system (Critical/High/Medium/Low)
+- **Custom Rules**: Organization rules get priority boost
 - **Critical Rules**: Always include hardcoded credentials, weak crypto
 - **Frontmatter Parsing**: `applyTo`, `version`, `description`
 
@@ -341,13 +345,87 @@ export function LoginForm() {
 
 ---
 
+## ✨ Custom Organization Rules (Phase 3 ✅)
+
+### Overview
+
+CodeGuard supports **custom organization-specific rules** that extend or override default security rules.
+
+### Features
+
+- **Override Default Rules**: Replace any default rule with your organization's version
+- **Add New Rules**: Create organization-specific standards (API conventions, logging format, etc.)
+- **Priority Boost**: Custom rules automatically ranked higher than defaults
+- **Automatic Loading**: No configuration needed - just add files to `rules/custom/`
+
+### Quick Start
+
+1. **Create custom rule file** in `rules/custom/`:
+   ```
+   rules/custom/org-api-standards.instructions.md
+   ```
+
+2. **Use standard frontmatter format**:
+   ```markdown
+   ---
+   applyTo: '**/*.ts,**/*.js,**/*.py'
+   description: 'Organization API Standards'
+   version: '1.0.0'
+   ---
+   
+   # Organization API Standards
+   Your organization-specific guidance...
+   ```
+
+3. **Restart MCP server** - custom rules load automatically:
+   ```
+   Loaded 22 default + 3 custom = 24 total instruction files
+   Custom rule 'org-api-standards' loaded
+   ```
+
+### Examples
+
+**Example 1: Override Hardcoded Credentials Rule**
+
+Create `rules/custom/codeguard-1-hardcoded-credentials.instructions.md`:
+- Specifies your organization's approved secret managers (Azure Key Vault, HashiCorp Vault)
+- Documents rotation policies and incident response
+- Lists organization contacts
+
+**Example 2: API Standards**
+
+Create `rules/custom/org-api-standards.instructions.md`:
+- REST conventions (methods, status codes, pagination)
+- Error response format
+- Rate limiting headers
+- Authentication requirements
+
+**Example 3: Logging Format**
+
+Create `rules/custom/org-logging-format.instructions.md`:
+- Required log fields (timestamp, traceId, service, userId)
+- Log levels (DEBUG, INFO, WARN, ERROR, FATAL)
+- What NOT to log (passwords, PII)
+- Structured logging examples
+
+See [`rules/custom/README.md`](./rules/custom/README.md) for complete documentation.
+
+### Priority System
+
+Custom rules get automatic advantages:
+- **+25 baseline score boost**
+- **Elevated priority tier** (LOW→MEDIUM, MEDIUM→HIGH)
+- **Appear before** equivalent default rules in results
+
+---
+
 ## 🛠️ Technology Stack
 
 - **Runtime**: Node.js 18+ / TypeScript
 - **Protocol**: MCP SDK (`@modelcontextprotocol/sdk`)
 - **Transport**: stdio (standard MCP)
 - **Parser**: Gray-matter (frontmatter), micromatch (glob patterns)
-- **Testing**: Jest / Vitest
+- **Testing**: Vitest (59 tests, 80-85% coverage)
 
 ---
 

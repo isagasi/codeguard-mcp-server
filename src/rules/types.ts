@@ -24,6 +24,12 @@ export interface Instruction {
   
   /** Parsed glob patterns from applyTo */
   patterns: string[];
+  
+  /** Whether this is a custom rule (vs default) */
+  isCustom?: boolean;
+  
+  /** If this rule overrides a default rule */
+  overrides?: string;
 }
 
 export interface MatchContext {

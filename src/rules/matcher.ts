@@ -233,7 +233,19 @@ function scoreInstruction(
     priority = Priority.CRITICAL;
     score = 1000;
     matchReasons.push('critical');
+    
+    // Custom rules get even higher score than default critical rules
+    if (instruction.isCustom) {
+      score += 100;
+    }
+    
     return { instruction, priority, score, matchReasons };
+  }
+  
+  // Custom rules get a baseline boost
+  if (instruction.isCustom) {
+    score += 25;
+    matchReasons.push('custom');
   }
   
   // Match by file path
@@ -290,6 +302,18 @@ function scoreInstruction(
   } else if (matchReasons.length === 1) {
     // Single match type = MEDIUM priority
     priority = Priority.MEDIUM;
+  }
+  
+  // Custom rules get elevated to next priority tier (unless already critical)
+  if (instruction.isCustom && priority < Priority.CRITICAL) {
+    if (priority === Priority.HIGH) {
+      // Keep HIGH but boost score
+      score += 50;
+    } else if (priority === Priority.MEDIUM) {
+      priority = Priority.HIGH;
+    } else if (priority === Priority.LOW) {
+      priority = Priority.MEDIUM;
+    }
   }
   
   return { instruction, priority, score, matchReasons };

@@ -43,11 +43,16 @@ describe('Rule Loader', () => {
     });
   });
 
-  it('should load all 22 instruction files', async () => {
+  it('should load all instruction files including custom rules', async () => {
     const rulesDir = path.join(process.cwd(), 'rules');
     const instructions = await loadInstructions(rulesDir);
     
-    expect(instructions.length).toBe(22);
+    // 22 default + 3 custom, but 1 custom overrides default = 24 total
+    expect(instructions.length).toBe(24);
+    
+    // Verify custom rules are loaded
+    const customRules = instructions.filter(i => i.isCustom);
+    expect(customRules.length).toBe(3);
   });
 
   it('should set correct id from filename', async () => {
