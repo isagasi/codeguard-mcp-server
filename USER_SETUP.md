@@ -125,9 +125,9 @@ git commit -m "Add CodeGuard MCP server configuration"
 
 Minimal setup (uses default rules from MCP server installation):
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
@@ -140,20 +140,15 @@ Minimal setup (uses default rules from MCP server installation):
 
 With custom rules directory and logging:
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
       "env": {
-        // Point to organization's central rules repository
         "CODEGUARD_RULES_DIR": "C:\\org\\security-rules",
-        
-        // Enable detailed logging (debug, info, warn, error)
         "LOG_LEVEL": "debug",
-        
-        // Show matching algorithm details
         "DEBUG_MATCHING": "true"
       }
     }
@@ -165,9 +160,9 @@ With custom rules directory and logging:
 
 You can configure multiple MCP servers alongside CodeGuard:
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
@@ -242,10 +237,10 @@ node "C:\org\codeguard-mcp\dist\index.js"
 ```
 
 **Common issues:**
-- ❌ Path has single backslashes (use `\\` in JSON)
+- ❌ Path has single backslashes (use `\\` in JSON on Windows)
 - ❌ Node.js not installed or not in PATH
 - ❌ Missing dependencies (run `npm install` in MCP server directory)
-- ❌ Syntax error in settings.json (check for missing commas, brackets)
+- ❌ Syntax error in mcp.json (check for missing commas, brackets)
 
 ### Server Shows "Error" Status
 
@@ -281,37 +276,38 @@ Error: Permission denied
 4. Tools should now appear
 ```
 
-### Settings.json Syntax Errors
+### JSON Syntax Errors
 
 **JSON is very strict about syntax:**
 
 ❌ **Wrong:**
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node"
-      "args": ["C:\path\to\file.js"]  // Single backslash
+      "args": ["C:\path\to\file.js"]
     }
   }
 }
 ```
 
 ✅ **Correct:**
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
-      "command": "node",  // Missing comma added
-      "args": ["C:\\path\\to\\file.js"]  // Double backslashes
+      "command": "node",
+      "args": ["C:\\path\\to\\file.js"]
     }
   }
 }
 ```
 
-**Use a JSON validator:**
+**Use VS Code's JSON validator:**
 - VS Code will show red underlines for syntax errors
 - Hover over the error to see what's wrong
+- Missing commas and single backslashes are most common mistakes
 
 ---
 
@@ -319,8 +315,7 @@ Error: Permission denied
 
 When your organization updates the CodeGuard MCP server:
 
-```powershell
-# Pull latest version
+```powershell from central location
 cd C:\org\codeguard-mcp
 git pull
 
@@ -331,22 +326,17 @@ npm run build
 # Ctrl+Shift+P → "Developer: Reload Window"
 ```
 
-Your settings.json configuration remains unchanged - it points to the same location, which now has the updated code.
+Your `.vscode/mcp.json` configuration remains unchanged - it points to the same location, which now has the updated code.
 
 ---
 
 ## Uninstalling
 
-To remove the CodeGuard MCP server:
+To remove the CodeGuard MCP server from a repository:
 
-1. **Remove from settings.json:**
-   ```jsonc
-   {
-     // Delete this entire block:
-     "chat.mcp.servers": {
-       "codeguard": { ... }
-     }
-   }
+1. **Delete `.vscode/mcp.json`:**
+   ```powershell
+   Remove-Item .vscode/mcp.json
    ```
 
 2. **Reload VS Code:**
@@ -365,9 +355,9 @@ Your organization may have specific requirements:
 
 If behind a corporate proxy:
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
@@ -384,9 +374,9 @@ If behind a corporate proxy:
 
 If your organization maintains custom rules separately:
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
@@ -402,9 +392,9 @@ If your organization maintains custom rules separately:
 
 If MCP server is on a network share:
 
-```jsonc
+```json
 {
-  "chat.mcp.servers": {
+  "servers": {
     "codeguard": {
       "command": "node",
       "args": ["\\\\fileserver\\shared\\codeguard-mcp\\dist\\index.js"]
@@ -417,9 +407,10 @@ If MCP server is on a network share:
 
 ## Best Practices
 
-1. **Configure once per machine** - User settings apply to all workspaces
-2. **Don't commit settings.json** - This is your personal configuration
-3. **Keep MCP server path consistent** - Use organization's standard location
+1. **Commit `.vscode/mcp.json` to Git** - Share configuration with team
+2. **Use consistent MCP server path** - Follow organization's standard location
+3. **Update regularly** - Pull latest rules from organization's repository
+4. **Test after updates** - Verify tools work after MCP server updatesion
 4. **Update regularly** - Pull latest rules from organization's repository
 5. **Report issues** - Contact security team if tools aren't working
 
