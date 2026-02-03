@@ -51,7 +51,8 @@ ls /opt/codeguard-mcp/dist/index.js
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
+      "autoStart": true
     }
   }
 }
@@ -63,7 +64,8 @@ ls /opt/codeguard-mcp/dist/index.js
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["/opt/codeguard-mcp/dist/index.js"]
+      "args": ["/opt/codeguard-mcp/dist/index.js"],
+      "autoStart": true
     }
   }
 }
@@ -87,7 +89,8 @@ mkdir .vscode -Force
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
+      "autoStart": true
     }
   }
 }
@@ -130,7 +133,8 @@ Minimal setup (uses default rules from MCP server installation):
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
+      "autoStart": true
     }
   }
 }

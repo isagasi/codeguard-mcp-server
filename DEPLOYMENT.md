@@ -133,7 +133,8 @@ mkdir .vscode -Force
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
+      "autoStart": true
     }
   }
 }
@@ -153,7 +154,8 @@ cat > .vscode/mcp.json <<EOF
   "servers": {
     "codeguard": {
       "command": "node",
-      "args": ["/opt/codeguard-mcp/dist/index.js"]
+      "args": ["/opt/codeguard-mcp/dist/index.js"],
+      "autoStart": true
     }
   }
 }
