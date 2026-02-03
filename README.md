@@ -12,55 +12,84 @@
 
 **Solution**: CodeGuard MCP Server provides centralized security instructions via the Model Context Protocol (MCP), eliminating per-repo instruction files while ensuring all AI-generated code follows security best practices.
 
----
+## 📚 Documentation
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide with hybrid approach
+- **[USER_SETUP.md](./USER_SETUP.md)** - Developer setup instructions (user-level config)
+- **[USAGE.md](./USAGE.md)** - Tool usage and examples
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Technical architecture details
+- GitHub Copilot or Claude Desktop
 
 ### Installation
 
 ```powershell
-# Install dependencies
+# Clone and install
+git clone <your-repo-url>
+cd contextpilot-server
 npm install
-
-# Build the project
 npm run build
-
-# Test the server
-npm start
 ```
 
-### Setup with Claude Desktop
+### Deployment Options
 
-1. **Build first:** `npm run build`
+#### Option 1: For Developers (Workspace Setup) - **REQUIRED**
 
-2. **Configure Claude Desktop** (`%APPDATA%\Claude\claude_desktop_config.json`):
-   ```json
-   {
-     "mcpServers": {
-       "codeguard": {
-         "command": "node",
-         "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
-       }
-     }
-   }
-   ```
+Add `.vscode/mcp.json` to your repository:
 
-3. **Restart Claude Desktop**
-
-4. **Test:** Ask Claude to generate Python code with password hashing!
-
-### Setup with GitHub Copilot (VS Code)
-
-Add to your project's `.github/.mcp.json`:
 ```json
+// .vscode/mcp.json
 {
-  "mcp": {
-    "servers": {
-      "codeguard": {
-        "command": "node",
+  "servers": {
+    "codeguard": {
+      "command": "node",
+      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+    }
+  }
+}
+```
+
+**Why workspace-level:**
+- VS Code currently only supports `.vscode/mcp.json` (not user-level)
+- ✅ Still centralized - points to single MCP server installation
+- ✅ Small footprint - 1 file (7 lines) vs 22+ instruction files
+- ✅ Version controlled - committed to Git, works for all team members
+
+📖 **See [USER_SETUP.md](./USER_SETUP.md) for detailed instructions**
+
+#### Option 2: For Organizations (Complete Deployment)
+
+Combine MCP server + organization instructions for best results:
+
+1. **Deploy MCP server** to central location (e.g., `C:\org\codeguard-mcp`)
+2. **Add `.vscode/mcp.json`** to all repositories (template or script)
+3. **Set organization instructions** in GitHub Enterprise (mandate tool usage)
+
+📖 **See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide**
+
+#### Option 3: For Testing (Claude Desktop)
+
+```json
+// %APPDATA%\Claude\claude_desktop_config.json
+{
+  "mcpServers": {
+    "codeguard": {
+      "command": "node",
+      "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
+    }
+  }
+}
+```
+
+### Verification
+
+```powershell
+# Check MCP server is available
+# In VS Code: Ctrl+Shift+P → "MCP: List Servers"
+# Should show "codeguard" with status "Running"
+
+# Test in Copilot Chat (Agent mode):
+# "Use the get_security_instructions tool to check authentication rules"
+```
         "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
       }
     }
@@ -591,39 +620,152 @@ npm run build
 
 ---
 
-## 🚦 Current Status
+## 🚦 Current Status & Deployment
 
-### ✅ Completed (Phase 1)
-- Core MCP server with stdio transport
-- Rule loader with frontmatter parsing
-- Pattern matching (glob, language, context)
-- Resource & Prompt handlers
-- 22 instruction files loaded
-- Works with Claude Desktop
+### ✅ Implementation Complete
+- ✅ Core MCP server with stdio transport
+- ✅ Smart rule matching (30+ languages, 50+ keywords, priority scoring)
+- ✅ Custom organization rules with override support
+- ✅ Resource, Prompt, and Tool handlers
+- ✅ 24 rules loaded (22 default + 3 custom - 1 override)
+- ✅ Works with Claude Desktop and VS Code
+- ✅ 59 tests passing (80-85% coverage)
 
-### ⏳ Pending
-- GitHub Copilot MCP support (waiting on Microsoft)
-- Advanced caching & optimization
-- Custom organization rules
+### 🔄 Deployment Strategy
+
+**Recommended Approach: Hybrid Model**
+
+The CodeGuard MCP server is production-ready. For deployment, we recommend a **hybrid approach** that combines:
+
+1. **Organization Custom Instructions** (GitHub Enterprise)
+   - Mandates security tool usage in Copilot prompts
+   - Works on GitHub.com (Copilot Chat, Review, Agent)
+   - See [.github/copilot-instructions.md](./.github/copilot-instructions.md)
+
+2. **User-Level MCP Configuration**
+   - Tamper-proof (applies to all workspaces)
+   - Centralized security rules
+   - See [USER_SETUP.md](./USER_SETUP.md)
+
+3. **Complete Deployment Guide**
+   - Installation steps
+   - Migration from repository instructions
+   - Troubleshooting
+   - See [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+### ⚠️ Known Limitations
+
+1. **Non-Deterministic Enforcement**
+   - Copilot may not always follow organization instructions
+   - Workaround: Explicit tool invocation, code review gates
+
+2. **No Automatic Prompt Injection**
+   - MCP prompts require manual invocation via slash commands
+   - Future: Waiting for Copilot MCP prompt support (no timeline)
+
+3. **Agent Mode Required**
+   - Tools only work in Copilot Chat Agent mode
+   - Not available for inline tab-completions
+
+**See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed limitations and workarounds**
+
+### 🔮 Future Enhancements
+
+**When Copilot Adds MCP Prompt Support:**
+- ✅ Automatic prompt injection in every request
+- ✅ No organization instructions needed
+- ✅ True automatic enforcement
+- ✅ Current server is forward-compatible
+
+**Current Status:** No timeline announced by GitHub/Microsoft
 
 ---
 
 ## 🤝 Benefits
 
 **For Developers:**
-- No manual rule maintenance per repo
-- Consistent security across projects
-- AI generates secure code automatically
+- ✅ No manual rule maintenance per repo
+- ✅ Consistent security across projects  
+- ✅ Centralized updates (change once, applies everywhere)
+- ✅ AI generates secure code automatically
 
 **For Organizations:**
-- Centralized security policy management
-- Easy organization-wide updates
-- Reduced security vulnerabilities
+- ✅ Centralized security policy management
+- ✅ Easy organization-wide updates
+- ✅ Reduced security vulnerabilities in AI-generated code
+- ✅ Compliance with security standards
+- ✅ Tamper-proof enforcement
 
 **For Security Teams:**
-- Single source of truth
-- Version control for policies
-- Proactive security at code generation time
+- ✅ Single source of truth for security rules
+- ✅ Version control for security policies
+- ✅ Custom organization rules with override capability
+- ✅ Proactive security at code generation time
+- ✅ Audit trail of rule versions
+
+---
+
+## 📖 Additional Documentation
+
+| Document | Description |
+|----------|-------------|
+| **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Complete deployment guide with hybrid approach, limitations, and migration path |
+| **[USER_SETUP.md](./USER_SETUP.md)** | Developer setup instructions for user-level settings.json configuration |
+| **[USAGE.md](./USAGE.md)** | Tool usage examples, slash commands, and resource attachment |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Technical architecture, rule matching algorithm, priority scoring |
+| **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** | Organization instruction template for GitHub Enterprise |
+| **[ROADMAP.md](./ROADMAP.md)** | Project roadmap and future enhancements |
+
+---
+
+## 🛠️ Tools & Features
+
+### MCP Tools (Copilot Agent Mode)
+
+**1. `get_security_instructions`**
+```
+Get applicable security rules for code generation
+
+Arguments:
+  - language?: string - Programming language (e.g., "python", "javascript")
+  - context?: string - Security context (e.g., "authentication", "crypto")
+  - filepath?: string - File path for pattern matching
+
+Returns: Markdown-formatted security instructions
+```
+
+**Example Usage:**
+```
+Use the get_security_instructions tool with language=python and context=authentication
+```
+
+**2. `validate_code_security`**
+```
+Validate code against security rules
+
+Arguments:
+  - code: string - The code snippet to validate
+  - language: string - Programming language
+
+Returns: Security validation results and recommendations
+```
+
+### MCP Resources (Manual Attachment)
+
+In Copilot Chat, click **Add Context** → **MCP Resources** → Select:
+- `codeguard://instructions/all` - All applicable rules
+- `codeguard://instructions/python` - Python-specific rules
+- `codeguard://instructions/javascript` - JavaScript-specific rules
+- `codeguard://instructions/typescript` - TypeScript-specific rules
+- `codeguard://instructions/file?path=src/auth.ts` - Rules for specific file
+
+### MCP Prompts (Slash Commands)
+
+```bash
+/mcp.codeguard.get_security_instructions
+```
+
+Invokes predefined prompt for security instruction retrieval with your current context.
 
 ---
 
