@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@suren2787'
+          scope: '@isagasi'
       
       - name: Install dependencies
         run: npm ci
@@ -45,11 +45,11 @@ jobs:
         run: |
           echo "## ✅ Package Published Successfully" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Package:** @suren2787/codeguard-mcp-server" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** @isagasi/codeguard-mcp-server" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** $(node -p "require('./package.json').version")" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** GitHub Packages" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "npm install -g @suren2787/codeguard-mcp-server" >> $GITHUB_STEP_SUMMARY
+          echo "npm install -g @isagasi/codeguard-mcp-server" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

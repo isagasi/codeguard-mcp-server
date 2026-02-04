@@ -23,7 +23,7 @@ $npmrcPath = Join-Path $env:USERPROFILE ".npmrc"
 
 # Add GitHub Packages configuration
 @"
-@suren2787:registry=https://npm.pkg.github.com
+@isagasi:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN_HERE
 "@ | Out-File -FilePath $npmrcPath -Append -Encoding UTF8
 
@@ -33,7 +33,7 @@ $npmrcPath = Join-Path $env:USERPROFILE ".npmrc"
 **macOS/Linux:**
 ```bash
 # Add to ~/.npmrc
-echo "@suren2787:registry=https://npm.pkg.github.com" >> ~/.npmrc
+echo "@isagasi:registry=https://npm.pkg.github.com" >> ~/.npmrc
 echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN_HERE" >> ~/.npmrc
 
 # Replace YOUR_GITHUB_TOKEN_HERE with your actual token
@@ -43,7 +43,7 @@ echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN_HERE" >> ~/.npmrc
 
 ```bash
 # Install globally
-npm install -g @suren2787/codeguard-mcp-server
+npm install -g @isagasi/codeguard-mcp-server
 
 # Verify installation
 codeguard-mcp --version
@@ -56,7 +56,7 @@ Run the setup script:
 
 ```powershell
 # Clone the repository (if you haven't already)
-git clone https://github.com/suren2787/codeguard-mcp-server.git
+git clone https://github.com/isagasi/codeguard-mcp-server.git
 cd codeguard-mcp-server
 
 # Run setup script (uses npm package by default)
@@ -99,10 +99,10 @@ When a new version is released:
 
 ```bash
 # Update to latest version
-npm update -g @suren2787/codeguard-mcp-server
+npm update -g @isagasi/codeguard-mcp-server
 
 # Or install specific version
-npm install -g @suren2787/codeguard-mcp-server@1.2.0
+npm install -g @isagasi/codeguard-mcp-server@1.2.0
 
 # Verify version
 codeguard-mcp --version
@@ -144,7 +144,7 @@ echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
 # Now install without sudo
-npm install -g @suren2787/codeguard-mcp-server
+npm install -g @isagasi/codeguard-mcp-server
 ```
 
 ### Package not found after installation
@@ -252,4 +252,4 @@ For private repositories (if you make the repo private later):
 ✅ Reload VS Code  
 ✅ Verify server is running  
 
-**Need help?** Open an issue at: https://github.com/suren2787/codeguard-mcp-server/issues
+**Need help?** Open an issue at: https://github.com/isagasi/codeguard-mcp-server/issues

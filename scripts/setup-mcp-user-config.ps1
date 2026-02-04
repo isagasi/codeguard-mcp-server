@@ -3,7 +3,7 @@
 
 param(
     [switch]$UseNpmPackage = $true,
-    [string]$PackageName = "@suren2787/codeguard-mcp-server"
+    [string]$PackageName = "@isagasi/codeguard-mcp-server"
 )
 
 $userConfigDir = Join-Path $env:APPDATA "Code\User"
