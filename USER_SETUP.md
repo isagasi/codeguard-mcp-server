@@ -1,24 +1,49 @@
-# VS Code Workspace MCP Configuration Guide
+# VS Code User-Level MCP Configuration Guide
 
-This guide shows how to configure the CodeGuard MCP server in VS Code using workspace-level configuration.
+This guide shows how to configure the CodeGuard MCP server in VS Code using user-level configuration.
 
 ## Configuration Approach
 
 **VS Code MCP Reality:**
-- ✅ **Workspace-level** (`.vscode/mcp.json`) - Currently the ONLY supported method
-- ❌ **User-level** (`settings.json`) - Not supported by VS Code yet
+- ✅ **User-level** (`%APPDATA%\Roaming\Code\User\mcp.json`) - **ONLY supported method**
+- ❌ **Workspace-level** (`.vscode/mcp.json`) - **Does NOT work** in VS Code
 
-This means each repository needs a `.vscode/mcp.json` file, but:
-- ✅ **Still centralized**: Points to single MCP server installation
-- ✅ **Small footprint**: 1 tiny file (7 lines) vs 22+ instruction files
-- ✅ **Version controlled**: Committed to Git, works for all team members
-- ✅ **Easy rollout**: Template or script can add to all repos
+**⚠️ CRITICAL:** Each developer must configure MCP on their local machine. This configuration:
+- ❌ **Cannot** be committed to Git (it's outside the repository)
+- ❌ **Cannot** be automatically distributed
+- ✅ **Must** be set up manually by each developer
+- ✅ Points to centralized MCP server installation
+
+**Deployment Strategy:**
+- Provide setup script for developers to run once
+- MCP Auto-Starter extension enables automatic startup
+- Central MCP server remains single source of truth for rules
 
 ---
 
 ## Step-by-Step Setup
 
-### Step 1: Verify MCP Server Location
+### Step 1: Install MCP Auto-Starter Extension (Required)
+
+**The MCP Auto-Starter extension is REQUIRED** for the MCP server to automatically start when VS Code opens.
+
+1. **Open Extensions Panel:**
+   - Press `Ctrl+Shift+X` (Windows/Linux) or `Cmd+Shift+X` (Mac)
+   - Or click the Extensions icon in the Activity Bar
+
+2. **Search and Install:**
+   - Search for: `MCP Auto-Starter`
+   - Publisher: `alankyshum`
+   - Click **Install**
+
+OR install via command line:
+```bash
+code --install-extension alankyshum.vscode-mcp-autostarter
+```
+
+**Why this is required:** VS Code's built-in MCP support doesn't auto-start servers by default. This extension enables the `autoStart: true` property in your MCP configuration.
+
+### Step 2: Verify MCP Server Location
 
 The MCP server should be deployed to a central location accessible by all developers:
 
@@ -38,18 +63,34 @@ Test-Path "C:\org\codeguard-mcp\dist\index.js"
 ls /opt/codeguard-mcp/dist/index.js
 ```
 
-### Step 2: Add `.vscode/mcp.json` to Your Repository
+### Step 3: Create User-Level MCP Configuration
 
-**Method 1: Manual Creation**
+**Method 1: Automated Script (Recommended)**
 
-1. **Create `.vscode` directory** in your repo root (if it doesn't exist)
-2. **Create `mcp.json`** file
+Run the provided setup script:
+
+```powershell
+# From repository root
+.\scripts\setup-mcp-user-config.ps1
+```
+
+This creates `%APPDATA%\Roaming\Code\User\mcp.json` with the correct configuration.
+
+**Method 2: Manual Creation**
+
+1. **Navigate to VS Code User directory:**
+   ```powershell
+   cd $env:APPDATA\Code\User
+   ```
+
+2. **Create `mcp.json`** file:
 
 **Windows:**
 ```json
 {
   "servers": {
     "codeguard": {
+      "type": "stdio",
       "command": "node",
       "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
       "autoStart": true
@@ -63,6 +104,7 @@ ls /opt/codeguard-mcp/dist/index.js
 {
   "servers": {
     "codeguard": {
+      "type": "stdio",
       "command": "node",
       "args": ["/opt/codeguard-mcp/dist/index.js"],
       "autoStart": true
@@ -71,36 +113,9 @@ ls /opt/codeguard-mcp/dist/index.js
 }
 ```
 
-3. **Save** the file
-4. **Commit to Git:**
-```powershell
-git add .vscode/mcp.json
-git commit -m "Add CodeGuard MCP server configuration"
-git push
-```
+3. **Save** the file (no Git commit - this file is local to your machine)
 
-**Method 2: PowerShell Script**
-
-```powershell
-# Quick setup script
-mkdir .vscode -Force
-@'
-{
-  "servers": {
-    "codeguard": {
-      "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"],
-      "autoStart": true
-    }
-  }
-}
-'@ | Out-File .vscode/mcp.json -Encoding UTF8
-
-git add .vscode/mcp.json
-git commit -m "Add CodeGuard MCP server configuration"
-```
-
-### Step 3: Reload VS Code & Verify
+### Step 4: Reload VS Code & Verify
 
 1. **Reload VS Code Window:**
    - Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
@@ -111,6 +126,7 @@ git commit -m "Add CodeGuard MCP server configuration"
    - Press `Ctrl+Shift+P` / `Cmd+Shift+P`
    - Type: "MCP: List Servers"
    - You should see `codeguard` with status "Running"
+   - ✅ **With MCP Auto-Starter installed, the server starts automatically!**
 
 3. **Verify Tools Available:**
    - Open Copilot Chat (click Copilot icon)

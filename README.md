@@ -14,10 +14,9 @@
 
 ## 📚 Documentation
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete deployment guide with hybrid approach
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete organizational deployment guide
 - **[USER_SETUP.md](./USER_SETUP.md)** - Developer setup instructions (user-level config)
-- **[USAGE.md](./USAGE.md)** - Tool usage and examples
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Technical architecture details
+- **[ROADMAP.md](./ROADMAP.md)** - Project roadmap and future enhancements
 - GitHub Copilot or Claude Desktop
 
 ### Installation
@@ -710,9 +709,7 @@ The CodeGuard MCP server is production-ready. For deployment, we recommend a **h
 | Document | Description |
 |----------|-------------|
 | **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Complete deployment guide with hybrid approach, limitations, and migration path |
-| **[USER_SETUP.md](./USER_SETUP.md)** | Developer setup instructions for user-level settings.json configuration |
-| **[USAGE.md](./USAGE.md)** | Tool usage examples, slash commands, and resource attachment |
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Technical architecture, rule matching algorithm, priority scoring |
+| **[USER_SETUP.md](./USER_SETUP.md)** | Developer setup instructions for user-level MCP configuration |
 | **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** | Organization instruction template for GitHub Enterprise |
 | **[ROADMAP.md](./ROADMAP.md)** | Project roadmap and future enhancements |
 

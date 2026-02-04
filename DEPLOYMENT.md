@@ -198,6 +198,21 @@ Create a user authentication endpoint with password hashing
 
 ## Installation & Configuration
 
+### Prerequisites
+
+**REQUIRED:** All developers must install the **MCP Auto-Starter** extension:
+
+```bash
+code --install-extension alankyshum.vscode-mcp-autostarter
+```
+
+Or manually:
+1. Open Extensions (`Ctrl+Shift+X`)
+2. Search: "MCP Auto-Starter"
+3. Install from publisher `alankyshum`
+
+**Why required:** VS Code doesn't auto-start MCP servers by default. This extension enables the `autoStart: true` property in your MCP configuration.
+
 ### Custom Organization Rules
 
 Add organization-specific security rules in `rules/custom/`:
@@ -433,7 +448,7 @@ When GitHub Copilot adds **automatic MCP prompt injection** support:
 ## Support & Feedback
 
 **Issues:** [GitHub Issues](https://github.com/your-org/contextpilot-server/issues)
-**Documentation:** See [README.md](./README.md) and [USAGE.md](./USAGE.md)
+**Documentation:** See [README.md](./README.md) and [USER_SETUP.md](./USER_SETUP.md)
 **Security Team:** security-engineering@your-org.com
 
-**Last Updated:** February 3, 2026
+**Last Updated:** February 4, 2026
