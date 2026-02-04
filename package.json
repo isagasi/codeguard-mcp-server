@@ -1,9 +1,24 @@
 {
-  "name": "codeguard-mcp-server",
+  "name": "@suren2787/codeguard-mcp-server",
   "version": "1.0.0",
   "description": "Centralized security instruction server for AI-assisted code generation",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "codeguard-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "rules",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suren2787/codeguard-mcp-server.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",

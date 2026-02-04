@@ -2,7 +2,8 @@
 # Run this script once on each developer's machine
 
 param(
-    [string]$McpServerPath = "C:\org\codeguard-mcp\dist\index.js"
+    [switch]$UseNpmPackage = $true,
+    [string]$PackageName = "@suren2787/codeguard-mcp-server"
 )
 
 $userConfigDir = Join-Path $env:APPDATA "Code\User"
@@ -21,24 +22,51 @@ if (Test-Path $mcpConfigFile) {
     }
 }
 
-# Verify MCP server exists
-if (-not (Test-Path $McpServerPath)) {
-    Write-Host "❌ MCP server not found at: $McpServerPath" -ForegroundColor Red
-    Write-Host "Please ensure the CodeGuard MCP server is deployed first." -ForegroundColor Yellow
-    exit 1
-}
-
-# Create MCP configuration
-$mcpConfig = @{
-    servers = @{
-        codeguard = @{
-            type = "stdio"
-            command = "node"
-            args = @($McpServerPath)
-            autoStart = $true
-        }
+# Check if using npm package or local path
+if ($UseNpmPackage) {
+    Write-Host "📦 Using npm package: $PackageName" -ForegroundColor Cyan
+    
+    # Check if package is installed globally
+    $npmList = npm list -g $PackageName --depth=0 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ Package not installed globally" -ForegroundColor Red
+        Write-Host "Install with: npm install -g $PackageName" -ForegroundColor Yellow
+        exit 1
     }
-} | ConvertTo-Json -Depth 10
+    
+    # Create MCP configuration for npm package
+    $mcpConfig = @{
+        servers = @{
+            codeguard = @{
+                type = "stdio"
+                command = "codeguard-mcp"
+                autoStart = $true
+            }
+        }
+    } | ConvertTo-Json -Depth 10
+} else {
+    # Legacy: Use local file path
+    $McpServerPath = "C:\org\codeguard-mcp\dist\index.js"
+    
+    # Verify MCP server exists
+    if (-not (Test-Path $McpServerPath)) {
+        Write-Host "❌ MCP server not found at: $McpServerPath" -ForegroundColor Red
+        Write-Host "Please ensure the CodeGuard MCP server is deployed first." -ForegroundColor Yellow
+        exit 1
+    }
+    
+    # Create MCP configuration for local path
+    $mcpConfig = @{
+        servers = @{
+            codeguard = @{
+                type = "stdio"
+                command = "node"
+                args = @($McpServerPath)
+                autoStart = $true
+            }
+        }
+    } | ConvertTo-Json -Depth 10
+}
 
 # Write configuration
 $mcpConfig | Out-File -FilePath $mcpConfigFile -Encoding UTF8
