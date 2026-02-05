@@ -1,6 +1,6 @@
 {
   "name": "@isagasi/codeguard-mcp-server",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Centralized security instruction server for AI-assisted code generation",
   "type": "module",
   "main": "dist/index.js",
