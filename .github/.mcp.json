@@ -1,8 +1,0 @@
-{
-  "servers": {
-    "codeguard": {
-      "command": "node",
-      "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
-    }
-  }
-}

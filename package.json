@@ -1,6 +1,6 @@
 {
   "name": "@isagasi/codeguard-mcp-server",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Centralized security instruction server for AI-assisted code generation",
   "type": "module",
   "main": "dist/index.js",
@@ -43,7 +43,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
     "gray-matter": "^4.0.3",
-    "micromatch": "^4.0.8"
+    "micromatch": "^4.0.8",
+    "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.9",
@@ -53,7 +54,6 @@
     "eslint": "^9.18.0",
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },
   "engines": {
