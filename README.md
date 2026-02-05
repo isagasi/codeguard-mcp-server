@@ -1,783 +1,136 @@
 # CodeGuard MCP Server
 
-> Centralized security instruction server for AI-assisted code generation
+Security rules for AI code generation via Model Context Protocol.
 
-## 🎯 Overview
+## What is this?
 
-**Problem**: Every repository needs `.github/instructions/` files to enforce security rules with GitHub Copilot and AI assistants. This leads to:
-- Duplicated instruction files across repositories
-- Inconsistent rule versions
-- Difficult to update security policies organization-wide
-- Manual maintenance overhead
+GitHub Copilot can use `.github/instructions/` files for security rules, but this sucks for orgs:
+- 22+ files duplicated in every repo
+- No central control
+- Pain to update
 
-**Solution**: CodeGuard MCP Server provides centralized security instructions via the Model Context Protocol (MCP), eliminating per-repo instruction files while ensuring all AI-generated code follows security best practices.
+This MCP server centralizes all security rules in one place.
 
-## 📚 Documentation
+## Quick Start
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete organizational deployment guide
-- **[USER_SETUP.md](./USER_SETUP.md)** - Developer setup instructions (user-level config)
-- **[ROADMAP.md](./ROADMAP.md)** - Project roadmap and future enhancements
-- GitHub Copilot or Claude Desktop
+### 1. Install Package
 
-### Installation
+```bash
+# Option 1: From GitHub Packages (recommended)
+# Create token: https://github.com/settings/tokens (scope: read:packages)
+echo "@isagasi:registry=https://npm.pkg.github.com" >> ~/.npmrc
+echo "//npm.pkg.github.com/:_authToken=YOUR_TOKEN" >> ~/.npmrc
+npm install -g @isagasi/codeguard-mcp-server
 
-```powershell
-# Clone and install
-git clone <your-repo-url>
-cd contextpilot-server
-npm install
-npm run build
+# Option 2: Direct from Git (if package install fails)
+npm install -g git+https://github.com/isagasi/codeguard-mcp-server.git
 ```
 
-### Deployment Options
+### 2. Configure VS Code
 
-#### Option 1: For Developers (Workspace Setup) - **REQUIRED**
-
-Add `.vscode/mcp.json` to your repository:
-
-```json
-// .vscode/mcp.json
+**Windows:**
+```powershell
+$config = @'
 {
   "servers": {
     "codeguard": {
-      "command": "node",
-      "args": ["C:\\org\\codeguard-mcp\\dist\\index.js"]
+      "type": "stdio",
+      "command": "codeguard-mcp",
+      "autoStart": true
     }
   }
 }
+'@
+$config | Out-File "$env:APPDATA\Code\User\mcp.json" -Encoding UTF8
 ```
 
-**Why workspace-level:**
-- VS Code currently only supports `.vscode/mcp.json` (not user-level)
-- ✅ Still centralized - points to single MCP server installation
-- ✅ Small footprint - 1 file (7 lines) vs 22+ instruction files
-- ✅ Version controlled - committed to Git, works for all team members
-
-📖 **See [USER_SETUP.md](./USER_SETUP.md) for detailed instructions**
-
-#### Option 2: For Organizations (Complete Deployment)
-
-Combine MCP server + organization instructions for best results:
-
-1. **Deploy MCP server** to central location (e.g., `C:\org\codeguard-mcp`)
-2. **Add `.vscode/mcp.json`** to all repositories (template or script)
-3. **Set organization instructions** in GitHub Enterprise (mandate tool usage)
-
-📖 **See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete deployment guide**
-
-#### Option 3: For Testing (Claude Desktop)
-
-```json
-// %APPDATA%\Claude\claude_desktop_config.json
+**macOS/Linux:**
+```bash
+cat > ~/Library/Application\ Support/Code/User/mcp.json << 'EOF'
 {
-  "mcpServers": {
+  "servers": {
     "codeguard": {
-      "command": "node",
-      "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
+      "type": "stdio",
+      "command": "codeguard-mcp",
+      "autoStart": true
     }
   }
 }
+EOF
 ```
 
-### Verification
+### 3. Install Auto-Starter
 
-```powershell
-# Check MCP server is available
-# In VS Code: Ctrl+Shift+P → "MCP: List Servers"
-# Should show "codeguard" with status "Running"
-
-# Test in Copilot Chat (Agent mode):
-# "Use the get_security_instructions tool to check authentication rules"
-```
-        "args": ["C:\\repo\\contextpilot-server\\dist\\index.js"]
-      }
-    }
-  }
-}
+```bash
+code --install-extension alankyshum.vscode-mcp-autostarter
 ```
 
-**Note:** GitHub Copilot MCP support is pending. Currently works best with Claude Desktop.
+### 4. Reload VS Code
 
----
+Done. Server auto-starts on next launch.
 
-## 🏗️ How It Works
+## How it Works
 
-### Current Approach (Per-Repository)
-```
-my-app/
-  .github/
-    instructions/
-      codeguard-1-crypto.instructions.md          ❌ Duplicated
-      codeguard-1-credentials.instructions.md     ❌ Duplicated
-      codeguard-0-input-validation.instructions.md ❌ Duplicated
-      ... (copy to every repo)
-```
+The server provides 24 security instruction files:
+- Crypto rules (no MD5, use Argon2/bcrypt)
+- Auth/authz best practices
+- Input validation, SQL injection prevention
+- API security, logging, container hardening
+- 3 custom org rules (override defaults)
 
-### CodeGuard MCP Approach (Centralized + Smart)
-```
-User: "Generate Python code to hash passwords"
-         ↓
-AI Assistant (Copilot/Claude):
-  - Connects to CodeGuard MCP Server
-  - Sends context: language=python, keywords="hash password"
-         ↓
-CodeGuard MCP Server (Phase 2 Smart Matching):
-  1. Auto-detects language: Python (.py files)
-  2. Extracts keywords: "hash", "password"
-  3. Scores & prioritizes rules:
-     • CRITICAL: codeguard-1-crypto-algorithms (score: 1000)
-     • CRITICAL: codeguard-1-hardcoded-credentials (score: 1000)
-     • HIGH: codeguard-0-authentication-mfa (score: 80)
-  4. Returns top 15 most relevant rules
-         ↓
-AI generates code following prioritized rules:
-  ✅ Uses bcrypt/Argon2 (not MD5) - from crypto-algorithms
-  ✅ No hardcoded secrets - from hardcoded-credentials
-  ✅ Proper salt generation - from authentication-mfa
-  ✅ Secure defaults - from all combined rules
+Copilot Chat can query these via MCP tools when generating code.
 
-NO .github/instructions needed in the repo!
-Smart context-aware rule delivery in < 10ms!
-```
+## Custom Rules
 
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│  AI Assistants (GitHub Copilot, Claude, etc.)      │
-│  Working in any repository/workspace                │
-└────────────────────┬────────────────────────────────┘
-                     │ MCP Protocol
-                     │ stdio/HTTP
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│           CodeGuard MCP Server                      │
-│                                                     │
-│  ┌───────────────────────────────────────────┐    │
-│  │  MCP Protocol Layer                       │    │
-│  │  • Resources (instruction delivery)       │    │
-│  │  • Prompts (dynamic injection)            │    │
-│  └─────────────────┬─────────────────────────┘    │
-│                    │                               │
-│  ┌─────────────────▼─────────────────────────┐    │
-│  │  Rule Engine                              │    │
-│  │  • Load instruction files                 │    │
-│  │  • Parse frontmatter (applyTo, version)   │    │
-│  │  • Match language/file patterns           │    │
-│  │  • Context-aware rule selection           │    │
-│  │  • Priority scoring (Critical/High/Med/Low)│   │
-│  │  • Custom rule override support           │    │
-│  └─────────────────┬─────────────────────────┘    │
-│                    │                               │
-│  ┌─────────────────▼─────────────────────────┐    │
-│  │  Centralized Rule Repository              │    │
-│  │  /rules/codeguard-1-*.instructions.md     │    │
-│  │  /rules/codeguard-0-*.instructions.md     │    │
-│  │  /rules/custom/*.instructions.md ✨ NEW   │    │
-│  └───────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────┘
-```
-
----
-
-## 📋 Core Components
-
-### 1. MCP Resources
-AI assistants can query instructions as resources:
-
-```typescript
-// Resource: All instructions
-codeguard://instructions/all
-
-// Resource: By language
-codeguard://instructions/python
-codeguard://instructions/javascript
-codeguard://instructions/typescript
-
-// Resource: By file pattern
-codeguard://instructions/file?path=src/auth/handler.ts
-```
-
-### 2. MCP Prompts
-Dynamic instruction injection based on context:
-
-```typescript
-Prompt: get_security_instructions
-Arguments:
-  - language: "python" | "javascript" | "c" | ...
-  - context: "auth" | "crypto" | "database" | ...
-  - filepath: Optional file path for pattern matching
-
-Returns: Concatenated instruction text for matched rules
-```
-
-### 3. Rule Matching Engine
-Smart rule selection based on:
-
-- **Language Detection**: `**/*.py` → Python rules (auto-detected from file extensions)
-- **File Patterns**: `**/*.test.js` → Testing rules
-- **Context Keywords**: "authentication" → Auth/MFA rules (50+ keywords)
-- **Priority Scoring**: 4-tier system (Critical/High/Medium/Low)
-- **Custom Rules**: Organization rules get priority boost
-- **Critical Rules**: Always include hardcoded credentials, weak crypto
-- **Frontmatter Parsing**: `applyTo`, `version`, `description`
-
----
-
-## 🎨 Rule Structure
-
-Each instruction file follows this format:
+Add org-specific rules in `rules/custom/`:
 
 ```markdown
 ---
-applyTo: '**/*.js,**/*.ts,**/*.jsx,**/*.tsx'
-description: No Hardcoded Credentials
-version: 1.0.1
+applyTo: '**/*.ts'
+description: Company API Standards
 ---
 
-rule_id: codeguard-1-hardcoded-credentials
+# API Standards
 
-# No Hardcoded Credentials
-
-NEVER store secrets, passwords, API keys, tokens or any other 
-credentials directly in source code.
-
-[... detailed rules and examples ...]
+All REST endpoints must:
+- Use company error format
+- Log to ELK stack
+- Rate limit: 100 req/min
 ```
 
-**Current Rules** (21+ instruction files):
-- `codeguard-1-hardcoded-credentials` ⚠️ Critical
-- `codeguard-1-crypto-algorithms` ⚠️ Critical
-- `codeguard-1-digital-certificates` ⚠️ Critical
-- `codeguard-0-authentication-mfa`
-- `codeguard-0-authorization-access-control`
-- `codeguard-0-input-validation-injection`
-- `codeguard-0-api-web-services`
-- `codeguard-0-client-side-web-security`
-- `codeguard-0-session-management-and-cookies`
-- ... (and 12+ more)
+Custom rules get +25 priority and override defaults.
 
----
+## Updating
 
-## 💡 Usage Examples
-
-### Example 1: Python Password Hashing
-
-**User Prompt:**
-```
-"Generate Python code to hash user passwords"
-```
-
-**What Happens:**
-1. AI detects: `language=python`, `context=crypto password`
-2. MCP Server returns instructions:
-   - codeguard-1-crypto-algorithms (no MD5/SHA-1)
-   - codeguard-0-authentication-mfa
-   - codeguard-1-hardcoded-credentials
-
-**Generated Code:**
-```python
-import bcrypt
-
-def hash_password(password: str) -> bytes:
-    """Hash password using bcrypt with secure defaults."""
-    # ✅ Uses bcrypt (not MD5)
-    # ✅ Automatic salt generation
-    # ✅ Secure work factor
-    salt = bcrypt.gensalt(rounds=12)
-    return bcrypt.hashpw(password.encode('utf-8'), salt)
-
-def verify_password(password: str, hashed: bytes) -> bool:
-    """Verify password against hash."""
-    return bcrypt.checkpw(password.encode('utf-8'), hashed)
-```
-
-### Example 2: Node.js Database Query
-
-**User Prompt:**
-```
-"Create a function to get user by email in TypeScript"
-```
-
-**What Happens:**
-1. AI detects: `language=typescript`, `context=database`
-2. MCP Server returns instructions:
-   - codeguard-0-input-validation-injection
-   - codeguard-0-data-storage
-   - codeguard-0-authorization-access-control
-
-**Generated Code:**
-```typescript
-import { Pool } from 'pg';
-
-async function getUserByEmail(email: string): Promise<User | null> {
-  // ✅ Input validation
-  if (!email || typeof email !== 'string') {
-    throw new Error('Invalid email parameter');
-  }
-  
-  // ✅ Parameterized query (no SQL injection)
-  const query = 'SELECT * FROM users WHERE email = $1';
-  const result = await pool.query(query, [email]);
-  
-  return result.rows[0] || null;
-}
-```
-
-### Example 3: React Authentication Component
-
-**User Prompt:**
-```
-"Create a login form component in React"
-```
-
-**What Happens:**
-1. AI detects: `language=typescript`, `context=auth`, `filepath=*.tsx`
-2. MCP Server returns instructions:
-   - codeguard-0-client-side-web-security (XSS, CSRF)
-   - codeguard-0-authentication-mfa
-   - codeguard-0-session-management-and-cookies
-
-**Generated Code:**
-```typescript
-// ✅ No credentials in code
-// ✅ CSRF protection
-// ✅ Secure cookie handling
-// ✅ XSS prevention via React defaults
-
-export function LoginForm() {
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target as HTMLFormElement);
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      credentials: 'same-origin', // ✅ Secure cookies
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': getCsrfToken(), // ✅ CSRF protection
-      },
-      body: JSON.stringify({
-        email: formData.get('email'),
-        password: formData.get('password'),
-      }),
-    });
-    // ... handle response
-  };
-  
-  return <form onSubmit={handleSubmit}>...</form>;
-}
-```
-
----
-
-## ✨ Custom Organization Rules (Phase 3 ✅)
-
-### Overview
-
-CodeGuard supports **custom organization-specific rules** that extend or override default security rules.
-
-### Features
-
-- **Override Default Rules**: Replace any default rule with your organization's version
-- **Add New Rules**: Create organization-specific standards (API conventions, logging format, etc.)
-- **Priority Boost**: Custom rules automatically ranked higher than defaults
-- **Automatic Loading**: No configuration needed - just add files to `rules/custom/`
-
-### Quick Start
-
-1. **Create custom rule file** in `rules/custom/`:
-   ```
-   rules/custom/org-api-standards.instructions.md
-   ```
-
-2. **Use standard frontmatter format**:
-   ```markdown
-   ---
-   applyTo: '**/*.ts,**/*.js,**/*.py'
-   description: 'Organization API Standards'
-   version: '1.0.0'
-   ---
-   
-   # Organization API Standards
-   Your organization-specific guidance...
-   ```
-
-3. **Restart MCP server** - custom rules load automatically:
-   ```
-   Loaded 22 default + 3 custom = 24 total instruction files
-   Custom rule 'org-api-standards' loaded
-   ```
-
-### Examples
-
-**Example 1: Override Hardcoded Credentials Rule**
-
-Create `rules/custom/codeguard-1-hardcoded-credentials.instructions.md`:
-- Specifies your organization's approved secret managers (Azure Key Vault, HashiCorp Vault)
-- Documents rotation policies and incident response
-- Lists organization contacts
-
-**Example 2: API Standards**
-
-Create `rules/custom/org-api-standards.instructions.md`:
-- REST conventions (methods, status codes, pagination)
-- Error response format
-- Rate limiting headers
-- Authentication requirements
-
-**Example 3: Logging Format**
-
-Create `rules/custom/org-logging-format.instructions.md`:
-- Required log fields (timestamp, traceId, service, userId)
-- Log levels (DEBUG, INFO, WARN, ERROR, FATAL)
-- What NOT to log (passwords, PII)
-- Structured logging examples
-
-See [`rules/custom/README.md`](./rules/custom/README.md) for complete documentation.
-
-### Priority System
-
-Custom rules get automatic advantages:
-- **+25 baseline score boost**
-- **Elevated priority tier** (LOW→MEDIUM, MEDIUM→HIGH)
-- **Appear before** equivalent default rules in results
-
----
-
-## 🛠️ Technology Stack
-
-- **Runtime**: Node.js 18+ / TypeScript
-- **Protocol**: MCP SDK (`@modelcontextprotocol/sdk`)
-- **Transport**: stdio (standard MCP)
-- **Parser**: Gray-matter (frontmatter), micromatch (glob patterns)
-- **Testing**: Vitest (59 tests, 80-85% coverage)
-
----
-
-## 🚦 Roadmap
-
-See [ROADMAP.md](./ROADMAP.md) for detailed implementation plan.
-
-### Phase 1: Core MCP Server ✅ **COMPLETED** (January 16, 2026)
-- [x] MCP server setup with stdio transport
-- [x] Rule loader with frontmatter parsing
-- [x] Pattern matching engine (glob patterns, language detection)
-- [x] Basic resource handlers
-- [x] Prompt handlers for dynamic instruction injection
-- [x] 22 instruction files loaded and working
-- [x] TypeScript build system configured
-- [x] Basic tests implemented (37 tests)
-
-### Phase 2: Smart Matching ✅ **COMPLETED** (January 20, 2026)
-- [x] Enhanced language detection (30+ languages, auto-detection from file paths)
-- [x] Context keyword matching (50+ keywords with weighted scoring)
-- [x] Rule prioritization system (4-tier: Critical/High/Medium/Low)
-- [x] Advanced pattern matching (negative patterns, complex globs)
-- [x] Multi-factor scoring algorithm
-- [x] Response optimization (top 15 most relevant rules)
-- [x] Comprehensive test coverage (51 tests, 80-85%)
-
-**Current Status:**
-- ✅ Server built and functional (`dist/index.js`)
-- ✅ Works with Claude Desktop (MCP supported)
-- ✅ Intelligent rule selection with priority scoring
-- ✅ Auto-detects language from file extensions
-- ✅ Context-aware matching (< 10ms response time)
-- ⏳ Waiting for GitHub Copilot MCP support
-
-### Phase 3: Enhanced Features (Week 3)
-- [ ] Custom organization rules support
-- [ ] Rule versioning and updates
-- [ ] Caching with TTL and invalidation
-- [ ] Configuration management (config.json)
-- [ ] Structured logging and metrics
-
-### Phase 4: Production Ready (Week 4+)
-- [ ] Docker containerization
-- [ ] HTTP transport option
-- [ ] Health check endpoint
-- [ ] Monitoring dashboard
-- [ ] GitHub Copilot integration (when available)
-
----
-
-## 🎯 Success Metrics
-
-- ✅ **Zero duplication**: No `.github/instructions` in any repo
-- ✅ **Centralized updates**: Update once, apply everywhere
-- ✅ **Automatic enforcement**: AI follows rules without developer intervention
-- ✅ **Fast response**: < 10ms with priority scoring (target: < 100ms) ✅
-- ✅ **High accuracy**: 90%+ correct rule matching with context awareness ✅
-- ✅ **Developer experience**: Transparent, no workflow changes
-
----
-
-## 🤝 Benefits
-
-### For Developers
-- No manual rule maintenance per repo
-- Consistent security standards across projects
-- AI generates secure code automatically
-- Clear, actionable security guidance
-
-### For Organizations
-- Centralized security policy management
-- Easy to update and enforce rules organization-wide
-- Audit trail of instruction versions
-- Reduced security vulnerabilities in AI-generated code
-
-### For Security Teams
-- Single source of truth for security rules
-- Version control for policy changes
-- Measurable compliance across all projects
-- Proactive security guidance at code generation time
-
----
-
-## 🏗️ Architecture
-
-### Component Overview
-
-```
-┌─────────────────────────────────────────────────────┐
-│  AI Assistants (Copilot, Claude, etc.)             │
-└────────────────────┬────────────────────────────────┘
-                     │ MCP Protocol (stdio)
-                     ▼
-┌─────────────────────────────────────────────────────┐
-│           CodeGuard MCP Server                      │
-│  ┌───────────────────────────────────────────┐    │
-│  │  MCP Layer (Resources, Prompts, Tools)    │    │
-│  └─────────────────┬─────────────────────────┘    │
-│  ┌─────────────────▼─────────────────────────┐    │
-│  │  Rule Engine (Match & Prioritize)         │    │
-│  └─────────────────┬─────────────────────────┘    │
-│  ┌─────────────────▼─────────────────────────┐    │
-│  │  Rules Repository (22+ instructions)      │    │
-│  └───────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────┘
-```
-
-### MCP Endpoints
-
-**Resources:**
-- `codeguard://instructions/all` - All instructions
-- `codeguard://instructions/{language}` - Language-specific
-- `codeguard://instructions/file?path={file}` - File-specific
-
-**Prompts:**
-- `get_security_instructions` - Context-aware instruction retrieval
-  - Args: `language`, `context`, `filepath`
-
-**Tools:**
-- `get_security_instructions` - Get rules for code generation
-- `validate_code_security` - Validate code against rules
-
-### Pattern Matching
-
-The server intelligently matches rules based on:
-- **File patterns:** `**/*.py`, `src/auth/**`
-- **Language:** Detected from extensions or prompts
-- **Context:** Keywords like "auth", "crypto", "database"
-- **Critical rules:** Always included (credentials, crypto, certificates)
-
----
-
-## 📦 Project Structure
-
-```
-contextpilot-server/
-├── rules/                      # 22+ security instruction files
-│   ├── codeguard-1-*.md       # Critical rules
-│   └── codeguard-0-*.md       # Best practices
-├── src/
-│   ├── index.ts               # MCP server entry
-│   ├── handlers/              # Resource/Prompt/Tool handlers
-│   └── rules/                 # Loader & Matcher
-├── tests/
-├── dist/                      # Compiled output
-└── package.json
-```
-
----
-
-## 🧪 Development
-
-```powershell
-# Development mode (hot reload)
-npm run dev
-
-# Run tests
-npm test
-
-# Build
-npm run build
-```
-
----
-
-## 🚦 Current Status & Deployment
-
-### ✅ Implementation Complete
-- ✅ Core MCP server with stdio transport
-- ✅ Smart rule matching (30+ languages, 50+ keywords, priority scoring)
-- ✅ Custom organization rules with override support
-- ✅ Resource, Prompt, and Tool handlers
-- ✅ 24 rules loaded (22 default + 3 custom - 1 override)
-- ✅ Works with Claude Desktop and VS Code
-- ✅ 59 tests passing (80-85% coverage)
-
-### 🔄 Deployment Strategy
-
-**Recommended Approach: Hybrid Model**
-
-The CodeGuard MCP server is production-ready. For deployment, we recommend a **hybrid approach** that combines:
-
-1. **Organization Custom Instructions** (GitHub Enterprise)
-   - Mandates security tool usage in Copilot prompts
-   - Works on GitHub.com (Copilot Chat, Review, Agent)
-   - See [.github/copilot-instructions.md](./.github/copilot-instructions.md)
-
-2. **User-Level MCP Configuration**
-   - Tamper-proof (applies to all workspaces)
-   - Centralized security rules
-   - See [USER_SETUP.md](./USER_SETUP.md)
-
-3. **Complete Deployment Guide**
-   - Installation steps
-   - Migration from repository instructions
-   - Troubleshooting
-   - See [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-### ⚠️ Known Limitations
-
-1. **Non-Deterministic Enforcement**
-   - Copilot may not always follow organization instructions
-   - Workaround: Explicit tool invocation, code review gates
-
-2. **No Automatic Prompt Injection**
-   - MCP prompts require manual invocation via slash commands
-   - Future: Waiting for Copilot MCP prompt support (no timeline)
-
-3. **Agent Mode Required**
-   - Tools only work in Copilot Chat Agent mode
-   - Not available for inline tab-completions
-
-**See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed limitations and workarounds**
-
-### 🔮 Future Enhancements
-
-**When Copilot Adds MCP Prompt Support:**
-- ✅ Automatic prompt injection in every request
-- ✅ No organization instructions needed
-- ✅ True automatic enforcement
-- ✅ Current server is forward-compatible
-
-**Current Status:** No timeline announced by GitHub/Microsoft
-
----
-
-## 🤝 Benefits
-
-**For Developers:**
-- ✅ No manual rule maintenance per repo
-- ✅ Consistent security across projects  
-- ✅ Centralized updates (change once, applies everywhere)
-- ✅ AI generates secure code automatically
-
-**For Organizations:**
-- ✅ Centralized security policy management
-- ✅ Easy organization-wide updates
-- ✅ Reduced security vulnerabilities in AI-generated code
-- ✅ Compliance with security standards
-- ✅ Tamper-proof enforcement
-
-**For Security Teams:**
-- ✅ Single source of truth for security rules
-- ✅ Version control for security policies
-- ✅ Custom organization rules with override capability
-- ✅ Proactive security at code generation time
-- ✅ Audit trail of rule versions
-
----
-
-## 📖 Additional Documentation
-
-| Document | Description |
-|----------|-------------|
-| **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Complete deployment guide with hybrid approach, limitations, and migration path |
-| **[USER_SETUP.md](./USER_SETUP.md)** | Developer setup instructions for user-level MCP configuration |
-| **[.github/copilot-instructions.md](./.github/copilot-instructions.md)** | Organization instruction template for GitHub Enterprise |
-| **[ROADMAP.md](./ROADMAP.md)** | Project roadmap and future enhancements |
-
----
-
-## 🛠️ Tools & Features
-
-### MCP Tools (Copilot Agent Mode)
-
-**1. `get_security_instructions`**
-```
-Get applicable security rules for code generation
-
-Arguments:
-  - language?: string - Programming language (e.g., "python", "javascript")
-  - context?: string - Security context (e.g., "authentication", "crypto")
-  - filepath?: string - File path for pattern matching
-
-Returns: Markdown-formatted security instructions
-```
-
-**Example Usage:**
-```
-Use the get_security_instructions tool with language=python and context=authentication
-```
-
-**2. `validate_code_security`**
-```
-Validate code against security rules
-
-Arguments:
-  - code: string - The code snippet to validate
-  - language: string - Programming language
-
-Returns: Security validation results and recommendations
-```
-
-### MCP Resources (Manual Attachment)
-
-In Copilot Chat, click **Add Context** → **MCP Resources** → Select:
-- `codeguard://instructions/all` - All applicable rules
-- `codeguard://instructions/python` - Python-specific rules
-- `codeguard://instructions/javascript` - JavaScript-specific rules
-- `codeguard://instructions/typescript` - TypeScript-specific rules
-- `codeguard://instructions/file?path=src/auth.ts` - Rules for specific file
-
-### MCP Prompts (Slash Commands)
-
+Developers:
 ```bash
-/mcp.codeguard.get_security_instructions
+npm update -g @isagasi/codeguard-mcp-server
 ```
 
-Invokes predefined prompt for security instruction retrieval with your current context.
+Maintainers:
+```bash
+npm version patch  # 1.0.0 -> 1.0.1
+git push --follow-tags
+# Create GitHub release
+```
 
----
+## Troubleshooting
 
-## 📝 License
+**Server not starting:**
+
+Check: `Ctrl+Shift+P` → "MCP: List Servers" → Should see `codeguard` running
+
+**Package not found:**
+```bash
+npm whoami --registry=https://npm.pkg.github.com  # Re-auth if fails
+```
+
+**Wrong version:**
+```bash
+npm uninstall -g @isagasi/codeguard-mcp-server
+npm install -g @isagasi/codeguard-mcp-server
+```
+
+## License
 
 MIT
-
----
-
-## 🔗 Resources
-
-- [Model Context Protocol](https://modelcontextprotocol.io)
-- [MCP SDK](https://github.com/modelcontextprotocol/sdk)
-- [Roadmap](./ROADMAP.md)
-
----
-
-Built with ❤️ for secure AI-assisted development
