@@ -1,6 +1,6 @@
 {
   "name": "@isagasi/codeguard-mcp-server",
-  "version": "1.0.6-r1",
+  "version": "1.0.7",
   "description": "Centralized security instruction server for AI-assisted code generation",
   "type": "module",
   "main": "dist/index.js",
@@ -15,9 +15,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/isagasi/codeguard-mcp-server.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "tsc",
