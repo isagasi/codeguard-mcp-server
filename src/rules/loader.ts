@@ -108,8 +108,11 @@ async function findInstructionFiles(dir: string, baseDir: string = dir): Promise
         files.push(relativePath);
       }
     }
-  } catch (error) {
-    console.error(`Failed to read directory ${dir}:`, error);
+  } catch (error: any) {
+    // Silently ignore if directory doesn't exist (e.g., custom/ not created yet)
+    if (error.code !== 'ENOENT') {
+      console.error(`Failed to read directory ${dir}:`, error);
+    }
   }
   
   return files;
