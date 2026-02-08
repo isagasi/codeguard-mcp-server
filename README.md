@@ -25,33 +25,47 @@ npm install -g @isagasi/codeguard-mcp-server
 
 **Windows:**
 ```powershell
-$config = @'
+# Get the global npm modules path
+$npmPath = npm root -g
+$serverPath = Join-Path $npmPath "@isagasi\codeguard-mcp-server\dist\index.js"
+
+# Create configuration using node with args for reliable stdio
+$config = @"
 {
   "servers": {
     "codeguard": {
       "type": "stdio",
-      "command": "codeguard-mcp",
+      "command": "node",
+      "args": ["$($serverPath -replace '\\', '\\\\')"],
       "autoStart": true
     }
   }
 }
-'@
-$config | Out-File "$env:APPDATA\Code\User\mcp.json" -Encoding UTF8
+"@
+[System.IO.File]::WriteAllText("$env:APPDATA\Code\User\mcp.json", $config, (New-Object System.Text.UTF8Encoding $false))
+Write-Host "✓ mcp.json created at: $env:APPDATA\Code\User\mcp.json"
 ```
 
 **macOS/Linux:**
 ```bash
-cat > ~/Library/Application\ Support/Code/User/mcp.json << 'EOF'
+# Get the global npm modules path
+NPM_PATH=$(npm root -g)
+SERVER_PATH="$NPM_PATH/@isagasi/codeguard-mcp-server/dist/index.js"
+
+# Create configuration using node with args for reliable stdio
+cat > ~/Library/Application\ Support/Code/User/mcp.json << EOF
 {
   "servers": {
     "codeguard": {
       "type": "stdio",
-      "command": "codeguard-mcp",
+      "command": "node",
+      "args": ["$SERVER_PATH"],
       "autoStart": true
     }
   }
 }
 EOF
+echo "✓ mcp.json created"
 ```
 
 ### 3. Install Auto-Starter
@@ -149,6 +163,16 @@ npm update -g @isagasi/codeguard-mcp-server
 - Check: `Ctrl+Shift+P` → "MCP: List Servers"
 - Should see `codeguard` with status "running"
 - If not listed, verify mcp.json path and reload VS Code
+
+**Error: `spawn ENOENT` or `spawn EINVAL`:**
+- This means the command path is incorrect or the binary wrapper isn't compatible
+- Use the `node` with `args` configuration shown in Step 2 (not `codeguard-mcp` command)
+- The MCP protocol requires clean stdio - using `node` directly ensures compatibility
+
+**View server logs:**
+- Open VS Code: View → Output
+- Select "MCP Auto-Starter" from dropdown
+- Check for startup errors or protocol violations
 
 **Reinstall package:**
 ```bash
