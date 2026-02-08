@@ -152,7 +152,7 @@ Custom rules are **automatically loaded** when the MCP server starts:
 Custom rule 'codeguard-1-hardcoded-credentials' overrides default rule
 Custom rule 'org-api-standards' overrides default rule
 Custom rule 'org-logging-format' overrides default rule
-Loaded 22 default + 3 custom = 24 total instruction files
+Loaded 23 default + 3 custom = 25 total instruction files
 ```
 
 ---

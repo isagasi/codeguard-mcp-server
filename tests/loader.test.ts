@@ -47,8 +47,8 @@ describe('Rule Loader', () => {
     const rulesDir = path.join(process.cwd(), 'rules');
     const instructions = await loadInstructions(rulesDir);
     
-    // 22 default + 3 custom, but 1 custom overrides default = 24 total
-    expect(instructions.length).toBe(24);
+    // 23 default + 3 custom, but 1 custom overrides default = 25 total
+    expect(instructions.length).toBe(25);
     
     // Verify custom rules are loaded
     const customRules = instructions.filter(i => i.isCustom);

@@ -99,12 +99,12 @@ If Copilot generates **insecure code** (MD5 passwords, SQL injection, hardcoded 
 
 ## How it Works
 
-The server provides 24 security instruction files:
+The server provides 23 default security instruction files + 3 custom org rules:
 - Crypto rules (no MD5, use Argon2/bcrypt)
 - Auth/authz best practices
 - Input validation, SQL injection prevention
 - API security, logging, container hardening
-- 3 custom org rules (override defaults)
+- Custom rules can override defaults
 
 Copilot Chat can query these via MCP tools when generating code.
 
