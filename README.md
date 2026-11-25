@@ -1,3 +1,5 @@
+[![Codeguard MCP server](https://mcprush.com/badge/codeguard-mcp/card.svg)](https://mcprush.com/to/codeguard-mcp?ref=badge)
+
 # CodeGuard MCP Server
 
 Security rules for AI code generation via Model Context Protocol.
